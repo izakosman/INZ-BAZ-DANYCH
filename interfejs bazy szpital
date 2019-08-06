@@ -1,0 +1,663 @@
+import sqlite3
+import tkinter as tk
+from tkinter import ttk
+from tkinter import scrolledtext
+from tkinter import Menu
+from tkinter import messagebox as msg
+from tkinter import Spinbox
+from  tkinter import *
+from tkinter import messagebox
+import datetime
+
+class DB:
+    def __init__(self):
+        self.conn = sqlite3.connect("bazaost.db")
+        self.cur = self.conn.cursor()
+        self.conn.commit()
+
+    def __del__(self):
+        self.conn.close()
+
+#  POLECENIA DLA ODDZIALOW
+#______________________________________________________
+
+    def view_oddzialy(self):
+        self.cur.execute("SELECT * FROM Oddzialy")
+        rows = self.cur.fetchall()
+        return rows
+
+    def add_oddzialy(self,  Nazwa, Miasto, ID_Pielegniarka):
+        self.cur.execute("INSERT INTO Oddzialy VALUES (NULL,?,?,?)", ( Nazwa, Miasto, ID_Pielegniarka,))
+        self.conn.commit()
+        self.view_oddzialy()
+
+    def update_oddzialy(self,ID_Oddzial, Nazwa, Miasto, ID_Pielegniarka,):
+        self.cur.execute("UPDATE Oddzialy SET  Nazwa=?, Miasto=?,ID_Pielegniarka=? WHERE ID_Oddzial=?", ( ID_Oddzial,Nazwa, Miasto, ID_Pielegniarka,))
+        self.view_oddzialy()
+
+    def delete_oddzialy(self, ID_Oddzial):
+        self.cur.execute("DELETE FROM Oddzialy WHERE ID_Oddzial=?", (ID_Oddzial,))
+        self.conn.commit()
+        self.view_oddzialy()
+
+    def search_oddzialy(self, Nazwa="", Miasto="", ID_Pielegniarka=""):
+        self.cur.execute("SELECT * FROM Oddzialy WHERE  Nazwa=? OR Miasto=? OR ID_Pielegniarka=?", ( Nazwa, Miasto, ID_Pielegniarka,))
+        rows = self.cur.fetchall()
+        return rows
+
+#  POLECENIA DLA PACJENTOW
+#______________________________________________________
+
+    def view_pacjenci(self):
+        self.cur.execute("SELECT * FROM Pacjenci")
+        rows = self.cur.fetchall()
+        return rows
+
+    def add_pacjenci(self,  Imie, Nazwisko, PESEL, Data_Urodzenia, Plec, Krewny, Adres, Ubezpieczenie, ID_Lozko):
+        self.cur.execute("INSERT INTO Pacjenci VALUES (NULL,?,?,?,?,?,?,?,?,?)", (  Imie, Nazwisko, PESEL, Data_Urodzenia, Plec, Krewny, Adres, Ubezpieczenie, ID_Lozko,))
+        self.conn.commit()
+        self.view_pacjenci()
+
+    def update_pacjenci(self,ID_Pacjent,Imie, Nazwisko, PESEL, Data_Urodzenia, Plec, Krewny, Adres, Ubezpieczenie, ID_Lozko):
+        self.cur.execute("UPDATE Pacjenci SET  Imie=?, Nazwisko=? , PESEL=? , Data_Urodzenia=? , Plec=? , Krewny=? , Adres=? , Ubezpieczenie=? , ID_Lozko=? WHERE ID_Pacjent=?", (ID_Pacjent, Imie, Nazwisko, PESEL, Data_Urodzenia, Plec, Krewny, Adres, Ubezpieczenie, ID_Lozko,))
+        self.view_pacjenci()
+
+    def delete_pacjenci(self, ID_Pacjent):
+        self.cur.execute("DELETE FROM Pacjenci WHERE ID_Pacjent=?", (ID_Pacjent,))
+        self.conn.commit()
+        self.view_pacjenci()
+
+    def search_pacjenci(self, Imie="", Nazwisko="", PESEL="", Data_Urodzenia="", Plec="", Krewny="",Adres="", Ubezpieczenie="", ID_Lozko=""):
+        self.cur.execute("SELECT * FROM Pacjenci WHERE Imie=? OR Nazwisko=? OR PESEL=? OR Data_Urodzenia=? OR Plec=? OR  Krewny=? OR Adres=? OR Ubezpieczenie=? OR ID_Lozko=? ", (Imie, Nazwisko, PESEL, Data_Urodzenia, Plec, Krewny, Adres, Ubezpieczenie, ID_Lozko,))
+        rows = self.cur.fetchall()
+        return rows
+    
+
+#  POLECENIA DLA PRACOWNIKOW
+#______________________________________________________
+
+    def view_pracownicy(self):
+        self.cur.execute("SELECT * FROM Pracownicy")
+        rows = self.cur.fetchall()
+        return rows
+
+    def add_pracownicy(self,  Imie, Nazwisko, PESEL, Stanowisko, Adres, Pensja, ID_Ordynator):
+        self.cur.execute("INSERT INTO Pracownicy VALUES (NULL,?,?,?,?,?,?,?)", ( Imie, Nazwisko, PESEL, Stanowisko, Adres, Pensja, ID_Ordynator,))
+        self.conn.commit()
+        self.view_pracownicy()
+
+    def update_pracownicy(self,ID_Pracownik, Imie, Nazwisko, PESEL, Stanowisko, Adres, Pensja,ID_Ordynator):
+        self.cur.execute("UPDATE Pracownicy SET Imie=?, Nazwisko=?, PESEL=?, Stanowisko=?, Adres=?, Pensja=?, ID_Ordynator=? WHERE ID_Pracownik=?", ( ID_Pracownik, Imie, Nazwisko, PESEL, Stanowisko, Adres, Pensja, ID_Ordynator,))
+        self.view_pracownicy()
+
+    def delete_pracownicy(self, ID_Pracownik):
+        self.cur.execute("DELETE FROM Pracownicy WHERE ID_Pracownik=?", (ID_Pracownik,))
+        self.conn.commit()
+        self.view_pracownicy()
+
+    def search_pracownicy(self, Imie="", Nazwisko="", PESEL="", Stanowisko="", Adres="", Pensja="",ID_Ordynator=""):
+        self.cur.execute("SELECT * FROM Pracownicy WHERE  Imie=? OR Nazwisko=? OR PESEL=? OR Stanowisko=? OR Adres=? OR Pensja=? OR ID_Ordynator=?", ( Imie, Nazwisko, PESEL, Stanowisko, Adres, Pensja, ID_Ordynator,))
+        rows = self.cur.fetchall()
+        return rows
+
+#cala klase podciagamy  pod zmienna    
+db = DB()
+
+#################################################################################################
+#
+#               TUPLE
+#
+##################################################################################################
+
+#tuple  dla  oddzialow
+#_________________________________________________ OK
+'''
+def get_selected_row_oddzialy(event):
+    global selected_tuple
+    index =listo.curselection()[0]
+    selected_tuple = listo.get(index)
+    
+    nazwaoddzial.delete(0, END)
+    nazwaoddzial.insert(END, selected_tuple[1])
+    
+    miastooddzial.delete(0, END)
+    miastooddzial.insert(END, selected_tuple[2])
+    
+    id1oddzial.delete(0, END)
+    id1oddzial.insert(END, selected_tuple[3])
+    
+    id2oddzial.delete(0, END)
+    id2oddzial.insert(END, selected_tuple[4])
+'''
+
+def get_selected_row_oddzialy(event):
+    try:
+        global selected_tuple
+        index =listo.curselection()[0]
+        selected_tuple = listo.get(index)
+        
+        nazwaoddzial.delete(0, END)
+        nazwaoddzial.insert(END, selected_tuple[1])
+
+        miastooddzial.delete(0, END)
+        miastooddzial.insert(END, selected_tuple[2])
+        
+        id2oddzial.delete(0, END)
+        id2oddzial.insert(END, selected_tuple[3])
+
+    except IndexError:
+        pass
+    
+#dla pacjentow
+#__________________________________________________ powinno byc ok
+    
+def get_selected_row_pacjenci(event):
+    try:
+        global selected_tuple
+        index =listpac.curselection()[0]
+        selected_tuple = listpac.get(index)
+    
+        imiepacjenci.delete(0, END)
+        imiepacjenci.insert(END, selected_tuple[1])
+    
+        nazwiskopacjenci.delete(0, END)
+        nazwiskopacjenci.insert(END, selected_tuple[2])
+    
+        PESELpacjenci.delete(0, END)
+        PESELpacjenci.insert(END, selected_tuple[3])
+    
+        dataurpacjenci.delete(0, END)
+        dataurpacjenci.insert(END, selected_tuple[4])
+
+        plecpacjenci.delete(0, END)
+        plecpacjenci.insert(END, selected_tuple[5])
+    
+        krewnypacjenci.delete(0, END)
+        krewnypacjenci.insert(END, selected_tuple[6])
+
+        adrespacjenci.delete(0, END)
+        adrespacjenci.insert(END, selected_tuple[7])
+        
+        ubezpieczeniepacjenci.delete(0, END)
+        ubezpieczeniepacjenci.insert(END, selected_tuple[8])
+
+        idlozkopacjenci.delete(0, END)
+        idlozkopacjenci.insert(END, selected_tuple[9])
+        
+        idpacjenci.delete(0, END)
+        idpacjenci.insert(END, selected_tuple[10])
+        
+    except IndexError:
+        pass
+    
+
+    #dla pracownikow
+#__________________________________________________
+    
+def get_selected_row_pracownicy(event):
+    try:
+        global selected_tuple
+        index =listprac.curselection()[0]
+        selected_tuple = listprac.get(index)
+    
+        imiepracownicy.delete(0, END)
+        imiepracownicy.insert(END, selected_tuple[1])
+    
+        nazwiskopracownicy.delete(0, END)
+        nazwiskopracownicy.insert(END, selected_tuple[2])
+    
+        PESELpracownicy.delete(0, END)
+        PESELpracownicy.insert(END, selected_tuple[3])
+    
+        stanowiskopracownicy.delete(0, END)
+        stanowiskopracownicy.insert(END, selected_tuple[4])
+
+        adrespracownicy.delete(0, END)
+        adrespracownicy.insert(END, selected_tuple[5])
+    
+        pensjapracownicy.delete(0, END)
+        pensjapracownicy.insert(END, selected_tuple[6])
+    
+
+        idordpracownicy.delete(0, END)
+        idordpracownicy.insert(END, selected_tuple[7])
+        
+        idpracownicy.delete(0, END)
+        idpracownicy.insert(END, selected_tuple[8])
+
+    except IndexError:
+        pass
+    
+    
+###########################################################################
+#
+#                  KOMENDY
+#
+###########################################################################
+
+#   KOMENDY DLA ODDZIALOW:
+#______________________________ O
+
+def view__oddzialy_command():
+    listo.delete(0, END)
+    for row in db.view_oddzialy():
+        listo.insert(END, row)
+
+def search_oddzialy_command():
+    listo.delete(0, END)
+    for row in db.search_oddzialy(nazwaoddzial.get(), miastooddzial.get(), id1oddzial.get()):
+        listo.insert(END, row)
+
+
+def add_oddzialy_command():
+    db.add_oddzialy(nazwaoddzial.get(), miastooddzial.get(), id2oddzial.get())
+    listo.delete(0, END)
+    listo.insert(END, (nazwaoddzial.get(), miastooddzial.get(), id2oddzial.get()))
+
+
+def delete_oddzialy_command():
+    db.delete_oddzialy(selected_tuple[0])
+
+
+def update_oddzialy_command():
+    db.update_oddzialy(selected_tuple[0], nazwaoddzial.get(), miastooddzial.get(), id1oddzial.get())
+
+# KOMENDY DLA PACJENTOW:
+#_____________________________________
+
+def view_pacjenci_command():
+    listpac.delete(0, END)
+    for row in db.view_pacjenci():
+        listpac.insert(END, row)
+
+def search_pacjenci_command():
+    listpac.delete(0, END)
+    for row in db.search_pacjenci(imiepacjenci.get(), nazwiskopacjenci.get(), PESELpacjenci.get(), dataurpacjenci.get(), plecpacjenci.get(), krewnypacjenci.get(), adrespacjenci.get(), ubezpieczeniepacjenci.get(), idlozkopacjenci.get()):
+        listpac.insert(END, row)
+
+def add_pacjenci_command():
+    db.add_pacjenci(imiepacjenci.get(), nazwiskopacjenci.get(), PESELpacjenci.get(), dataurpacjenci.get(), plecpacjenci.get(), krewnypacjenci.get(), adrespacjenci.get(), ubezpieczeniepacjenci.get(),idlozkopacjenci.get())
+    listpac.delete(0, END)
+    listpac.insert(END, (imiepacjenci.get(), nazwiskopacjenci.get(), PESELpacjenci.get(), dataurpacjenci.get(), plecpacjenci.get(), krewnypacjenci.get(), adrespacjenci.get(), ubezpieczeniepacjenci.get(),idlozkopacjenci.get()))
+
+def delete_pacjenci_command():
+    db.delete_pacjenci(selected_tuple[0])
+
+def update_pacjenci_command():
+    db.update_pacjenci(imiepacjenci.get(), nazwiskopacjenci.get(), PESELpacjenci.get(), dataurpacjenci.get(), plecpacjenci.get(), krewnypacjenci.get(), adrespacjenci.get(), ubezpieczeniepacjenci.get())
+
+# KOMENDY DLA PRACOWNIKOW:
+#_____________________________________
+def view_pracownicy_command():
+    listprac.delete(0, END)
+    for row in db.view_pracownicy():
+        listprac.insert(END, row)
+
+def search_pracownicy_command():
+    listpac.delete(0, END)
+    for row in db.search_pracownicy(imiepracownicy.get(), nazwiskopracownicy.get(), PESELpracownicy.get(),stanowiskopracownicyget(), adrespracownicy.get(), pensjapracownicy.get(), idordpracownicy.get()):
+        listprac.insert(END, row)
+
+def add_pracownicy_command():
+    db.add_pracownicy(imiepracownicy.get(), nazwiskopracownicy.get(), PESELpracownicy.get(),stanowiskopracownicy.get(), adrespracownicy.get(), pensjapracownicy.get(), idordpracownicy.get())
+    listprac.delete(0, END)
+    listprac.insert(END, (imiepracownicy.get(), nazwiskopracownicy.get(), PESELpracownicy.get(), stanowiskopracownicy.get() ,adrespracownicy.get(), pensjapracownicy.get(), idordpracownicy.get()))
+
+def delete_pracownicy_command():
+    db.delete_pracownicy(selected_tuple[0])
+
+def update_pracownicy_command():
+    db.update_pracownicy(imiepracownicy.get(), nazwiskopracownicy.get(), PESELpracownicy.get(),stanowiskopracownicy.get(), adrespracownicy.get(), pensjapracownicy.get(), idordpracownicy.get(),)
+
+
+
+
+
+##############################################################################################################
+#
+#                          OKNO I GORNY PASEK
+#
+#######################################################################################################
+window = tk.Tk()
+window.title("SZPITAL  AD, IK,PW")
+
+tabControl = ttk.Notebook(window)         
+tab1 = ttk.Frame(tabControl)            
+tabControl.add(tab1, text='Oddziały')
+tab2 = ttk.Frame(tabControl)            
+tabControl.add(tab2, text='Pacjenci')
+tab3 = ttk.Frame(tabControl)            
+tabControl.add(tab3, text='Pracownicy')
+
+tabControl.pack(expand=1, fill="both") 
+
+oddzialy = ttk.LabelFrame(tab1, text=' Oddzialy ')
+oddzialy.grid(column=0, row=0, padx=8, pady=4)
+pacjenci = ttk.LabelFrame(tab2, text=' Pacjenci ')
+pacjenci.grid(column=1, row=0, padx=8, pady=4)
+pracownicy = ttk.LabelFrame(tab3, text=' Pracownicy ')
+pracownicy.grid(column=2, row=0, padx=8, pady=4)
+
+
+
+def on_closing():
+    dd = db
+    if messagebox.askokcancel("Zakończ", "Czy chcesz zakończyć pracę  programu?"):
+        window.destroy()
+        del dd
+
+
+
+####################################################################################
+#
+#                                ODDZIALY
+#
+####################################################################################
+
+
+#  tutaj pokaze nam  zawartosc bazy
+#____________________________________ OK
+
+listo= Listbox(oddzialy, height=15, width=50)
+listo.grid(row=1, column=2, rowspan=50, columnspan=10)
+title_text = StringVar()
+
+
+#  Scrollbar
+#___________________________________ OK
+
+sblisto = Scrollbar(oddzialy)
+sblisto.grid(row=3, column=1, rowspan=6)
+
+listo.configure(yscrollcommand=sblisto.set)
+sblisto.configure(command=listo.yview)
+
+
+# teraz okreslamy pola tekstowe w ktory wyswietla sie atrybuty
+#_____________________________________________________________ OK
+
+window.protocol("WM_DELETE_WINDOW", on_closing)
+
+od1_text=StringVar()
+nazwaoddzial =Entry(oddzialy, textvariable=od1_text) 
+nazwaoddzial.grid(row=0, column=1)
+
+od2_text=StringVar()
+miastooddzial = Entry(oddzialy, textvariable=od2_text)
+miastooddzial.grid(row=0, column=3)
+
+od3_text=StringVar()
+id2oddzial= Entry(oddzialy, textvariable=od3_text)
+id2oddzial.grid(row=0, column=5)
+
+
+
+# nazwijmy jakos pola tekstowe,zeby bylo wiadome  co  edytujemy/ogladamy
+#_______________________________________________________________________   OK
+
+pole1_oddzialy = Label(oddzialy, text="Nazwa: ")
+pole1_oddzialy.grid(row=0, column=0)
+pole2_oddzialy = Label(oddzialy, text="Miasto: ")
+pole2_oddzialy.grid(row=0, column=2)
+pole3_oddzialy = Label(oddzialy, text="Pielegniarka: ")
+pole3_oddzialy.grid(row=0, column=4)
+pole4_oddzialy = Label(oddzialy, text="   ")
+pole4_oddzialy.grid(row=0, column=6)
+
+
+# przyciski pod ktore podpiete beda funkcje
+#______________________________________________ OK
+
+listo.bind('<<ListboxSelect>>', get_selected_row_oddzialy)
+
+ob1 =Button(oddzialy, text="Wyświetl Oddział", width=18, command=view__oddzialy_command)
+ob1.grid(row=5, column=0)
+ob2 = Button(oddzialy, text="Szukaj Oddział", width=18, command=search_oddzialy_command)
+ob2.grid(row=6, column=0)
+ob3 = Button(oddzialy, text="Dodaj Oddział", width=18, command=add_oddzialy_command)
+ob3.grid(row=7, column=0)
+ob4 = Button(oddzialy, text="Aktualizuj Oddział", width=18, command=update_oddzialy_command)
+ob4.grid(row=8, column=0)
+ob5 = Button(oddzialy, text="Usuń Oddział", width=18, command=delete_oddzialy_command)
+ob5.grid(row=9, column=0)
+
+
+
+####################################################################################
+#
+#                               PACJENCI
+#
+####################################################################################
+
+
+
+
+#  tutaj pokaze nam  zawartosc bazy   
+#____________________________________    OK
+
+listpac = Listbox(pacjenci, height=15, width=150)
+listpac.grid(row=4, column=2, rowspan=50, columnspan=10)
+title_text = StringVar()
+
+
+#  Scrollbar
+#___________________________________    OK
+
+sblistpac = Scrollbar(pacjenci)
+sblistpac.grid(row=3, column=1, rowspan=6)
+
+listpac.configure(yscrollcommand=sblistpac.set)
+sblistpac.configure(command=listpac.yview)
+
+
+# teraz okreslamy pola tekstowe w ktory wyswietla sie atrybuty  OK
+#_____________________________________________________________
+window.protocol("WM_DELETE_WINDOW", on_closing)
+
+pac1_text=StringVar()
+imiepacjenci = Entry(pacjenci, textvariable=pac1_text)
+imiepacjenci.grid(row=0, column=1)
+
+pac2_text=StringVar()
+nazwiskopacjenci = Entry(pacjenci, textvariable=pac2_text)
+nazwiskopacjenci.grid(row=0, column=3)
+
+pac3_text=StringVar()
+PESELpacjenci = Entry(pacjenci, textvariable=pac3_text)
+PESELpacjenci.grid(row=0, column=5)
+
+pac4_text=StringVar()
+dataurpacjenci = Entry(pacjenci, textvariable=pac4_text)
+dataurpacjenci.grid(row=0, column=7)
+
+pac5_text=StringVar()
+plecpacjenci = Entry(pacjenci, textvariable=pac5_text)
+plecpacjenci.grid(row=1, column=1)
+
+pac6_text=StringVar()
+krewnypacjenci = Entry(pacjenci, textvariable=pac6_text)
+krewnypacjenci.grid(row=1, column=3)
+
+pac7_text=StringVar()
+adrespacjenci = Entry(pacjenci, textvariable=pac7_text)
+adrespacjenci.grid(row=1, column=5)
+
+pac8_text=StringVar()
+ubezpieczeniepacjenci = Entry(pacjenci, textvariable=pac8_text)
+ubezpieczeniepacjenci.grid(row=2, column=1)
+
+pac9_text=StringVar()
+idlozkopacjenci = Entry(pacjenci, textvariable=pac9_text)
+idlozkopacjenci.grid(row=2, column=3)
+
+pac10_text=StringVar()
+idpacjenci = Entry(pacjenci, textvariable=pac10_text)
+idpacjenci.grid(row=2, column=5)
+
+
+# nazwijmy jakos pola tekstowe,zeby bylo wiadome  co  edytujemy/ogladamy  OK
+#_______________________________________________________________________
+
+pole1_pacjenci = Label(pacjenci, text="Imę: ")
+pole1_pacjenci.grid(row=0, column=0)
+
+pole2_pacjenci = Label(pacjenci, text="Nazwisko: ")
+pole2_pacjenci.grid(row=0, column=2)
+
+pole3_pacjenci = Label(pacjenci, text="PESEL: ")
+pole3_pacjenci.grid(row=0, column=4)
+
+pole4_pacjenci = Label(pacjenci, text="Data urodzenia: ")
+pole4_pacjenci.grid(row=0, column=6)
+
+pole5_pacjenci = Label(pacjenci, text="Płeć: ")
+pole5_pacjenci.grid(row=1, column=0)
+
+pole6_pacjenci = Label(pacjenci, text="Krewny: ")
+pole6_pacjenci.grid(row=1, column=2)
+
+pole7_pacjenci = Label(pacjenci, text="Adres: ")
+pole7_pacjenci.grid(row=1, column=4)
+
+pole8_pacjenci = Label(pacjenci, text="Ubezpieczenie: ")
+pole8_pacjenci.grid(row=2, column=0)
+
+pole9_pacjenci = Label(pacjenci, text="Numer łóżka: ")
+pole9_pacjenci.grid(row=2, column=2)
+
+pole10_pacjenci = Label(pacjenci, text="ID Pacjenta: ")
+pole10_pacjenci.grid(row=2, column=4)
+
+# bindujemy guziczki
+# przyciskipod ktore podpietabedzie funkcja
+#______________________________________________________________________________________ OK
+
+listpac.bind('<<ListboxSelect>>', get_selected_row_pacjenci)
+p1 = Button(pacjenci, text="Wyświetl Pacjentów", width=18, command=view_pacjenci_command)
+p1.grid(row=5, column=0)
+
+p2 = Button(pacjenci, text="Szukaj Pacjenta", width=18, command=search_pacjenci_command)
+p2.grid(row=6, column=0)
+
+p3 = Button(pacjenci, text="Dodaj Pacjenta", width=18, command=add_pacjenci_command)
+p3.grid(row=7, column=0)
+
+p4 = Button(pacjenci, text="Aktualizuj Pacjenta", width=18, command=update_pacjenci_command)
+p4.grid(row=8, column=0)
+
+p5 = Button(pacjenci, text="Usuń Pacjenta", width=18, command=delete_pacjenci_command)
+p5.grid(row=9, column=0)
+
+
+####################################################################################
+#
+#                               PRACOWNICY
+#
+####################################################################################
+
+
+
+#  tutaj pokaze nam  zawartosc bazy
+#____________________________________
+
+listprac = Listbox(pracownicy, height=15, width=150)
+listprac.grid(row=4, column=2, rowspan=50, columnspan=10)
+title_text = StringVar()
+
+#  Scrollbar
+#___________________________________
+
+sblistprac = Scrollbar(pracownicy)
+sblistprac.grid(row=3, column=1, rowspan=6)
+
+listprac.configure(yscrollcommand=sblistprac.set)
+sblistprac.configure(command=listprac.yview)
+
+
+# teraz okreslamy pola tekstowe w ktory wyswietla sie atrybuty
+#_____________________________________________________________
+window.protocol("WM_DELETE_WINDOW", on_closing)
+
+prac1_text=StringVar()
+imiepracownicy = Entry(pracownicy, textvariable=prac1_text) 
+imiepracownicy.grid(row=0, column=1)
+
+prac2_text=StringVar()
+nazwiskopracownicy= Entry(pracownicy, textvariable=prac2_text)
+nazwiskopracownicy.grid(row=0, column=3)
+
+prac3_text=StringVar()
+PESELpracownicy = Entry(pracownicy, textvariable=prac3_text)
+PESELpracownicy.grid(row=0, column=5)
+
+prac4_text=StringVar()
+stanowiskopracownicy = Entry(pracownicy, textvariable=prac4_text)
+stanowiskopracownicy.grid(row=0, column=7)
+
+prac5_text=StringVar()
+adrespracownicy = Entry(pracownicy, textvariable=prac5_text)
+adrespracownicy.grid(row=1, column=1)
+
+prac6_text=StringVar()
+pensjapracownicy = Entry(pracownicy, textvariable=prac6_text)
+pensjapracownicy .grid(row=1, column=3)
+
+prac7_text=StringVar()
+idordpracownicy = Entry(pracownicy, textvariable=prac7_text)
+idordpracownicy.grid(row=1, column=5)
+
+prac8_text=StringVar()
+idpracownicy = Entry(pracownicy, textvariable=prac8_text)
+idpracownicy.grid(row=2, column=1)
+
+
+
+# nazwijmy jakos pola tekstowe,zeby bylowiadome  co  edytujemy/ogladamy
+#_______________________________________________________________________
+
+pole11_pracownicy = Label(pracownicy, text="Imę: ")
+pole11_pracownicy.grid(row=0, column=0)
+
+pole22_pracownicy = Label(pracownicy, text="Nazwisko: ")
+pole22_pracownicy.grid(row=0, column=2)
+
+pole3_pracownicy = Label(pracownicy, text="PESEL: ")
+pole3_pracownicy.grid(row=0, column=4)
+
+pole4_pracownicy = Label(pracownicy, text="Stanowisko: ")
+pole4_pracownicy.grid(row=0, column=6)
+
+pole5_pracownicy = Label(pracownicy, text="Adres: ")
+pole5_pracownicy.grid(row=1, column=0)
+
+pole6_pracownicy = Label(pracownicy, text="Pensja: ")
+pole6_pracownicy.grid(row=1, column=2)
+
+pole7_pracownicy = Label(pracownicy, text="ID Ordynatora: ")
+pole7_pracownicy.grid(row=1, column=4)
+
+pole8_pracownicy = Label(pracownicy, text="ID: ")
+pole8_pracownicy.grid(row=2, column=0)
+
+# przyciskipod ktore podpieta bedzie funkcja
+#_______________________________________________
+
+listprac.bind('<<ListboxSelect>>', get_selected_row_pracownicy)
+prac1 =Button(pracownicy, text="Wyświetl Pracownika", width=20, command=view_pracownicy_command)
+prac1.grid(row=5, column=0)
+
+prac2 =Button(pracownicy, text="Szukaj Pracownika", width=20, command=search_pracownicy_command)
+prac2.grid(row=6, column=0)
+
+prac3 =Button(pracownicy, text="Dodaj Pracownika", width=20, command=add_pracownicy_command)
+prac3.grid(row=7, column=0)
+
+prac4 =Button(pracownicy, text="Aktualizuj Pracownika", width=20, command=update_pracownicy_command)
+prac4.grid(row=8, column=0)
+
+prac5 =Button(pracownicy, text="Usuń Pracownika", width=20, command=delete_pracownicy_command)
+prac5.grid(row=9, column=0)
+
+
+window.mainloop()
+
